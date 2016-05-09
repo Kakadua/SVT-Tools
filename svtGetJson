@@ -1,0 +1,43 @@
+<?php
+
+	function file_write($file, $data){
+		$fh = fopen($file, 'w') or die("can't open file");
+		fwrite($fh, $data);
+		fclose($fh);		
+	}
+	
+	function get_between_all($content, $start, $end, $array = array()){
+		$temp = explode($start, $content, 2);
+		if(isset($temp[1])){
+			$temp = explode($end, $temp[1], 2);
+			$array[] = $temp[0];
+			return get_between_all($temp[1], $start, $end, $array);
+		} else{
+			return $array;
+		}
+	}
+	
+	echo "Ange id till serien du vill hämta, du ser det i url, exempelvis http://www.svtplay.se/bron har id bron\n\nid: ";
+	$handle = fopen ("php://stdin","r");
+	$url = trim(fgets($handle));
+	
+	if(substr($url, 4) != 'http'){
+		$url = "http://www.svtplay.se/{$url}";
+	}
+	$urlAll = "{$url}?sida=200&tab=helaprogram";
+	
+	$raw = file_get_contents($urlAll);
+	$id = explode("/", $url)[3];
+	//echo $id;
+	
+	foreach(get_between_all($raw, '<a href="/video/', "/{$id}") as $video){
+		if(strlen($video)<10){
+			$raw = "";
+			$raw = file_get_contents("http://www.svtplay.se/video/{$video}?output=json");
+			$json = json_decode($raw, true);
+			$title = $json['statistics']['title'];
+			echo "{$title}\n";
+			file_write("{$title}.svt.json", $raw);
+		}
+	}
+?>

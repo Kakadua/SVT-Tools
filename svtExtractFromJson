@@ -1,0 +1,61 @@
+<?php
+
+	function file_read($file){
+		$fh = fopen($file, 'r');
+		$data = fread($fh, filesize($file));
+		fclose($fh);
+		return $data;	
+	}
+	
+	function file_write($file, $data){
+		$fh = fopen($file, 'w') or die("can't open file");
+		fwrite($fh, $data);
+		fclose($fh);		
+	}
+	
+	function generateFromDir($dir){
+		$files = scandir($dir);
+		foreach($files as $file) {
+			if(is_dir("{$dir}/{$file}")){
+				echo "{$file}\n";
+				if($file != '.' && $file != '..'){
+					generateFromDir("{$dir}/{$file}");
+				}
+			}else if(substr($file, -9) == '.svt.json'){
+			
+				$file = "{$dir}/{$file}";
+				echo "{$file}\n";
+				$filename = $url = $sub = $fanart = "";
+				$filename = explode(".svt.json", $file)[0];
+				$json = json_decode(file_read($file), true);
+				foreach($json['video']['videoReferences'] as $stream){
+					if($stream['playerType'] == 'ios'){
+						$url = explode('?alt', $stream['url'])[0];
+					}
+				}
+				if(isset($json['video']['subtitleReferences'][0])){
+					$sub = $json['video']['subtitleReferences'][0]['url'];
+				}
+				if(isset($json['context']['posterImage'])){
+					$fanart = $json['context']['posterImage'];
+				}
+				
+				if($url != ""){
+					file_write("{$filename}.strm", $url);
+				}
+				if($fanart != ""){
+					file_put_contents("{$filename}-fanart.jpg", file_get_contents($fanart));
+				}
+				if($sub != ""){
+					$sub = file_get_contents($sub);
+					file_write("{$filename}.wsrt", $sub);
+				}
+			}else{
+				echo "-{$file}\n";
+			}
+		}
+	}
+	
+	generateFromDir('.');
+
+?>
