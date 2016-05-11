@@ -1,5 +1,9 @@
 <?php
 
+	function string_insert($string, $substring, $position){
+		return substr_replace($string, $substring, $position, 0);	
+	}
+	
 	function file_write($file, $data){
 		$fh = fopen($file, 'w') or die("can't open file");
 		fwrite($fh, $data);
@@ -35,7 +39,7 @@
 			$raw = "";
 			$raw = file_get_contents("http://www.svtplay.se/video/{$video}?output=json");
 			$json = json_decode($raw, true);
-			$title = $json['statistics']['title'];
+			$title = string_insert(string_insert($json['statistics']['broadcastDate'], '-', 4), '-', 7)." - ".$json['statistics']['title'];
 			echo "{$title}\n";
 			file_write("{$title}.svt.json", $raw);
 		}
