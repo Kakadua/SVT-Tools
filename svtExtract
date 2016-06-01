@@ -41,7 +41,7 @@
 				}
 				
 				if($url != ""){
-					file_write("{$filename}.strm", $url);
+					file_write("{$filename}.svt.strm", $url);
 				}
 				if($fanart != ""){
 					file_put_contents("{$filename}-fanart.jpg", file_get_contents($fanart));
